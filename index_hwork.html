@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Домашнее задание • Информатика</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+            background-color: #d4eafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .page-title {
+            color: #2c5282;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+            margin-bottom: 4px;
+        }
+
+        /* Плашка с последним домашним заданием */
+        .latest-homework {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            padding: 28px 28px;
+            box-shadow: 0 14px 28px rgba(47, 133, 90, 0.12);
+            border-left: 6px solid #2f855a;
+            transition: all 0.3s ease;
+        }
+
+        .latest-badge {
+            display: inline-block;
+            background: linear-gradient(145deg, #48bb78, #2f855a);
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            letter-spacing: 0.4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+
+        .latest-date {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c5282;
+            margin-bottom: 6px;
+        }
+
+        .latest-topic {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 12px;
+        }
+
+        .latest-homework-text {
+            font-size: 1.08rem;
+            color: #1e2e3a;
+            line-height: 1.6;
+            background: rgba(184, 230, 200, 0.3);
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-weight: 500;
+        }
+
+        /* Таблица со всеми заданиями */
+        .table-wrapper {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
+            padding: 28px 24px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.06);
+            overflow-x: auto;
+        }
+
+        .homework-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 1.02rem;
+            color: #1a202c;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(47, 133, 90, 0.1);
+        }
+
+        .homework-table thead th {
+            background: linear-gradient(145deg, #2f855a, #276749);
+            color: white;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            padding: 15px 18px;
+            text-align: left;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: none;
+            white-space: nowrap;
+        }
+
+        .homework-table tbody tr:nth-child(even) {
+            background-color: rgba(184, 230, 200, 0.3);
+        }
+        .homework-table tbody tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .homework-table td {
+            padding: 13px 18px;
+            border-bottom: 1px solid rgba(56, 161, 105, 0.12);
+            font-weight: 500;
+            color: #1e2e3a;
+            transition: background 0.2s ease;
+            vertical-align: top;
+        }
+
+        .homework-table tbody tr:hover {
+            background-color: rgba(72, 187, 120, 0.22);
+            transition: background 0.2s ease;
+        }
+
+        .homework-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .homework-table thead th:first-child {
+            border-top-left-radius: 16px;
+        }
+        .homework-table thead th:last-child {
+            border-top-right-radius: 16px;
+        }
+        .homework-table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 16px;
+        }
+        .homework-table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 16px;
+        }
+
+        /* Строка последнего задания подсвечена */
+        .homework-table tbody tr.row-latest {
+            background-color: rgba(72, 187, 120, 0.2);
+            font-weight: 600;
+        }
+        .homework-table tbody tr.row-latest td {
+            color: #1a3c2a;
+        }
+
+        /* Кнопка "Показать другие" */
+        .toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(145deg, #48bb78, #2f855a);
+            color: white;
+            font-weight: 600;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            padding: 12px 26px;
+            border-radius: 36px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 16px rgba(56, 161, 105, 0.3);
+            border: 2px solid transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            user-select: none;
+        }
+
+        .toggle-btn:hover {
+            background: linear-gradient(145deg, #4fd18b, #2f855a);
+            box-shadow: 0 12px 22px rgba(47, 133, 90, 0.4);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .toggle-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 3px 10px rgba(47, 133, 90, 0.45);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(145deg, #48bb78, #2f855a);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.3px;
+            padding: 14px 28px;
+            border-radius: 40px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 18px rgba(56, 161, 105, 0.35);
+            border: 2px solid transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(145deg, #4fd18b, #2f855a);
+            box-shadow: 0 14px 24px rgba(47, 133, 90, 0.45);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.25);
+            text-decoration: none;
+            color: white;
+        }
+
+        .back-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 12px rgba(47, 133, 90, 0.5);
+        }
+
+        .hidden-row {
+            display: none;
+        }
+
+        .buttons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        @media (max-width: 650px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+            .homework-table thead th,
+            .homework-table td {
+                padding: 10px 10px;
+                font-size: 0.88rem;
+            }
+            .table-wrapper {
+                padding: 16px 10px;
+                border-radius: 24px;
+            }
+            .latest-homework {
+                padding: 20px 18px;
+            }
+            .toggle-btn, .back-btn {
+                font-size: 0.95rem;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1 class="page-title">📚 Домашнее задание</h1>
+
+        <!-- Блок с последним (актуальным) домашним заданием -->
+        <div class="latest-homework" id="latestBlock">
+            <span class="latest-badge">🔥 Актуальное задание</span>
+            <div class="latest-date" id="latestDate"></div>
+            <div class="latest-topic" id="latestTopic"></div>
+            <div class="latest-homework-text" id="latestHomeworkText"></div>
+        </div>
+
+        <!-- Таблица со всеми уроками -->
+        <div class="table-wrapper">
+            <table class="homework-table" id="homeworkTable">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Время</th>
+                        <th>Урок</th>
+                        <th>Домашнее задание</th>
+                    </tr>
+                </thead>
+                <tbody id="homeworkBody">
+                    <!-- Данные загружаются через JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="buttons-row">
+            <button class="toggle-btn" id="toggleBtn" aria-label="Показать другие задания">
+                👁️ Показать другие
+            </button>
+            <a href="index_main.html" class="back-btn" aria-label="Вернуться на главную">🏠 На главную</a>
+        </div>
+    </div>
+
+    <!-- Подключение файла с данными -->
+    <script src="homework_data.js"></script>
+    <script>
+        // Ищем последнее (актуальное) домашнее задание
+        function getLatestHomework() {
+            if (typeof window.homeworkData === 'undefined' || window.homeworkData.length === 0) {
+                return null;
+            }
+            // Ищем запись с isLast = true
+            const latest = window.homeworkData.find(item => item.isLast === true);
+            // Если не найдено, берём последний элемент массива
+            return latest || window.homeworkData[window.homeworkData.length - 1];
+        }
+
+        // Отображаем блок с актуальным заданием
+        function renderLatestBlock() {
+            const latest = getLatestHomework();
+            if (!latest) return;
+
+            document.getElementById('latestDate').textContent = `📅 ${latest.date} • ${latest.time}`;
+            document.getElementById('latestTopic').textContent = `📖 Тема: ${latest.topic}`;
+            document.getElementById('latestHomeworkText').textContent = latest.homework;
+        }
+
+        // Отображаем таблицу со всеми заданиями
+        function renderHomeworkTable() {
+            const tbody = document.getElementById('homeworkBody');
+            if (!tbody || typeof window.homeworkData === 'undefined') return;
+
+            const latest = getLatestHomework();
+            tbody.innerHTML = '';
+
+            window.homeworkData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                // Определяем, является ли эта строка последним заданием
+                const isLatest = (latest && 
+                    item.date === latest.date && 
+                    item.time === latest.time && 
+                    item.topic === latest.topic);
+
+                if (isLatest) {
+                    row.classList.add('row-latest');
+                } else {
+                    // Все не-последние строки скрываем по умолчанию
+                    row.classList.add('hidden-row');
+                }
+
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${item.time}</td>
+                    <td>${item.lesson}<br><small style="color:#4a5568;">${item.topic}</small></td>
+                    <td>${item.homework}</td>
+                `;
+                
+                // Сохраняем признак "последнее" в data-атрибуте
+                row.dataset.isLatest = isLatest ? 'true' : 'false';
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Обработчик кнопки "Показать другие" / "Скрыть"
+        function setupToggleButton() {
+            const toggleBtn = document.getElementById('toggleBtn');
+            const hiddenRows = document.querySelectorAll('#homeworkBody tr.hidden-row');
+            
+            let isExpanded = false;
+
+            toggleBtn.addEventListener('click', function() {
+                isExpanded = !isExpanded;
+                
+                hiddenRows.forEach(row => {
+                    if (isExpanded) {
+                        row.classList.remove('hidden-row');
+                    } else {
+                        // Скрываем только те, которые не являются последними
+                        if (row.dataset.isLatest !== 'true') {
+                            row.classList.add('hidden-row');
+                        }
+                    }
+                });
+
+                // Меняем текст и иконку кнопки
+                if (isExpanded) {
+                    toggleBtn.innerHTML = '🙈 Скрыть';
+                    toggleBtn.setAttribute('aria-label', 'Скрыть другие задания');
+                } else {
+                    toggleBtn.innerHTML = '👁️ Показать другие';
+                    toggleBtn.setAttribute('aria-label', 'Показать другие задания');
+                }
+            });
+        }
+
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof window.homeworkData !== 'undefined') {
+                renderLatestBlock();
+                renderHomeworkTable();
+                setupToggleButton();
+            } else {
+                console.error('Файл с данными не загружен. Проверьте наличие homework_data.js');
+                document.getElementById('latestBlock').innerHTML = 
+                    '<p style="color:#c53030;">❌ Ошибка загрузки данных. Проверьте подключение homework_data.js</p>';
+            }
+        });
+    </script>
+</body>
+</html>

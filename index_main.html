@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Группа "ИС-2025"</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+            background-color: #d4eafc;  /* пастельный голубой фон */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Основной контейнер, центрирующий кнопки */
+        .button-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            padding: 44px 32px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Общий стиль для всех зелёных кнопок-ссылок */
+        .green-btn {
+            background-color: #38a169;  /* насыщенный зелёный */
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: 0.3px;
+            padding: 18px 30px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 18px rgba(56, 161, 105, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-width: 180px;
+            flex: 1 0 auto;
+            border: 2px solid transparent;
+            line-height: 1.3;
+            background: linear-gradient(145deg, #48bb78, #2f855a);
+            background-color: #38a169;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            transform: translateY(0);
+            text-decoration: none;  /* убираем подчеркивание у ссылок */
+        }
+
+        /* Эффект при наведении — кнопка приподнимается и меняет оттенок */
+        .green-btn:hover {
+            background: linear-gradient(145deg, #4fd18b, #2f855a);
+            background-color: #48bb78;
+            box-shadow: 0 14px 24px rgba(47, 133, 90, 0.45);
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            text-decoration: none;  /* подчеркивание не появляется при наведении */
+        }
+
+        /* Активное нажатие — кнопка немного утапливается */
+        .green-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 12px rgba(47, 133, 90, 0.5);
+            background: linear-gradient(145deg, #2f855a, #276749);
+            transition: all 0.08s ease;
+        }
+
+        /* Фокус для доступности (клавиатурная навигация) */
+        .green-btn:focus-visible {
+            outline: 3px solid #ffd966;
+            outline-offset: 4px;
+            border-color: #ffffff;
+        }
+
+        /* Адаптация для узких экранов (мобильные устройства) */
+        @media (max-width: 620px) {
+            .button-panel {
+                gap: 18px;
+                padding: 32px 20px;
+                border-radius: 36px;
+            }
+
+            .green-btn {
+                font-size: 1.1rem;
+                padding: 16px 20px;
+                min-width: 140px;
+                flex: 1 1 40%;
+                border-radius: 34px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .green-btn {
+                font-size: 1rem;
+                padding: 15px 15px;
+                min-width: 120px;
+                flex: 1 1 100%;
+                border-radius: 30px;
+            }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="button-panel">
+            
+            <a href="index_data.html" class="green-btn" aria-label="Список группы">📋 Список группы</a>
+            <a href="index_point.html" class="green-btn" aria-label="Оценки">⭐ Оценки</a>
+            <a href="index_hwork.html" class="green-btn" aria-label="Домашнее задание">📚 Домашнее задание</a>
+            <a href="index_info.html" class="green-btn" aria-label="Информация">ℹ️ Личный кабинет</a>
+        </div>
+    </div>
+</body>
+</html>

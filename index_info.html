@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Редактирование данных • Панель администратора</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+            background-color: #d4eafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* ========== ЭКРАН ВХОДА ========== */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(180, 210, 235, 0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .login-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 32px;
+            padding: 40px 36px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-icon { font-size: 3.5rem; margin-bottom: 12px; }
+        .login-title { color: #2c5282; font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.3px; }
+        .login-subtitle { color: #718096; font-size: 0.95rem; margin-bottom: 28px; }
+
+        .input-group { margin-bottom: 18px; text-align: left; }
+        .input-group label { display: block; font-weight: 600; color: #2d3748; margin-bottom: 6px; font-size: 0.9rem; letter-spacing: 0.3px; }
+        .input-group input {
+            width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 16px;
+            font-size: 1.05rem; font-family: inherit; transition: all 0.25s ease;
+            background: #f7fafc; color: #1a202c;
+        }
+        .input-group input:focus {
+            outline: none; border-color: #48bb78; background: white;
+            box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.12);
+        }
+
+        .login-btn {
+            width: 100%; padding: 15px; background: linear-gradient(145deg, #48bb78, #2f855a);
+            color: white; font-weight: 700; font-size: 1.15rem; letter-spacing: 0.4px;
+            border: none; border-radius: 20px; cursor: pointer; transition: all 0.25s ease;
+            box-shadow: 0 8px 20px rgba(56, 161, 105, 0.35);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-top: 8px;
+        }
+        .login-btn:hover { background: linear-gradient(145deg, #4fd18b, #2f855a); box-shadow: 0 14px 28px rgba(47, 133, 90, 0.45); transform: translateY(-2px); }
+        .login-btn:active { transform: translateY(1px); box-shadow: 0 4px 10px rgba(47, 133, 90, 0.5); }
+
+        .login-error { color: #c53030; font-weight: 600; font-size: 0.9rem; margin-top: 12px; min-height: 22px; transition: all 0.3s; }
+        .login-error.shake { animation: shake 0.5s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+
+        /* ========== ОСНОВНОЙ КОНТЕНТ ========== */
+        .main-container {
+            width: 100%; max-width: 1100px; display: flex;
+            flex-direction: column; align-items: center; gap: 24px;
+        }
+
+        .header-row {
+            width: 100%; display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 12px;
+        }
+
+        .page-title {
+            color: #2c5282; font-size: 1.8rem; font-weight: 700;
+            text-align: center; letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+        }
+
+        .user-info {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255, 255, 255, 0.5); padding: 10px 20px;
+            border-radius: 30px; font-weight: 600; color: #2c5282;
+            font-size: 0.95rem; backdrop-filter: blur(4px);
+        }
+
+        /* Кнопки в шапке */
+        .header-buttons {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        }
+
+        .save-all-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(145deg, #3182ce, #2b6cb0);
+            color: white; font-weight: 700; font-size: 0.95rem;
+            padding: 11px 22px; border-radius: 30px; cursor: pointer;
+            transition: all 0.25s ease; border: 2px solid transparent;
+            box-shadow: 0 6px 16px rgba(49, 130, 206, 0.35);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15); letter-spacing: 0.3px;
+        }
+        .save-all-btn:hover {
+            background: linear-gradient(145deg, #4299e1, #2c5282);
+            box-shadow: 0 12px 22px rgba(49, 130, 206, 0.45);
+            transform: translateY(-2px); border-color: rgba(255,255,255,0.25);
+        }
+        .save-all-btn:active { transform: translateY(1px); }
+
+        .logout-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255, 255, 255, 0.6); color: #c53030;
+            font-weight: 600; font-size: 0.9rem; padding: 10px 20px;
+            border-radius: 28px; border: 2px solid rgba(197, 48, 48, 0.2);
+            cursor: pointer; transition: all 0.25s ease; backdrop-filter: blur(4px);
+        }
+        .logout-btn:hover { background: #fed7d7; border-color: #c53030; transform: translateY(-1px); }
+
+        /* Вкладки */
+        .tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.5); border: 2px solid transparent;
+            color: #2c5282; font-weight: 600; font-size: 1.05rem; padding: 12px 28px;
+            border-radius: 30px; cursor: pointer; transition: all 0.25s ease;
+            backdrop-filter: blur(4px); letter-spacing: 0.3px;
+        }
+        .tab-btn:hover { background: rgba(255, 255, 255, 0.8); transform: translateY(-2px); }
+        .tab-btn.active {
+            background: linear-gradient(145deg, #48bb78, #2f855a); color: white;
+            border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 6px 16px rgba(56, 161, 105, 0.35);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+
+        /* Контейнер панели */
+        .panel-wrapper {
+            width: 100%; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(6px);
+            border-radius: 32px; padding: 28px 24px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.06); overflow-x: auto;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Таблица */
+        .data-table {
+            width: 100%; border-collapse: separate; border-spacing: 0;
+            font-size: 0.98rem; color: #1a202c; border-radius: 20px;
+            overflow: hidden; box-shadow: 0 6px 16px rgba(47, 133, 90, 0.1); margin-bottom: 20px;
+        }
+        .data-table thead th {
+            background: linear-gradient(145deg, #2f855a, #276749); color: white;
+            font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px;
+            padding: 13px 14px; text-align: left; text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: none; white-space: nowrap;
+        }
+        .data-table tbody tr:nth-child(even) { background-color: rgba(184, 230, 200, 0.3); }
+        .data-table tbody tr:nth-child(odd) { background-color: rgba(255, 255, 255, 0.7); }
+        .data-table td {
+            padding: 11px 14px; border-bottom: 1px solid rgba(56, 161, 105, 0.12);
+            font-weight: 500; color: #1e2e3a; transition: background 0.2s ease; vertical-align: middle;
+        }
+        .data-table tbody tr:hover { background-color: rgba(72, 187, 120, 0.22); }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .data-table thead th:first-child { border-top-left-radius: 16px; }
+        .data-table thead th:last-child { border-top-right-radius: 16px; }
+        .data-table tbody tr:last-child td:first-child { border-bottom-left-radius: 16px; }
+        .data-table tbody tr:last-child td:last-child { border-bottom-right-radius: 16px; }
+
+        .data-table input[type="text"],
+        .data-table input[type="number"] {
+            width: 100%; min-width: 80px; padding: 8px 10px;
+            border: 2px solid rgba(56, 161, 105, 0.25); border-radius: 10px;
+            font-family: inherit; font-size: 0.95rem; font-weight: 500;
+            background: rgba(255, 255, 255, 0.7); transition: all 0.2s ease; color: #1a202c;
+        }
+        .data-table input:focus {
+            outline: none; border-color: #48bb78; background: white;
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+        }
+        .data-table input[type="number"] { max-width: 80px; text-align: center; }
+        .data-table input[type="checkbox"] { width: 20px; height: 20px; accent-color: #2f855a; cursor: pointer; }
+
+        .action-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 4px; padding: 7px 12px; border-radius: 20px; border: none;
+            font-weight: 600; font-size: 0.85rem; cursor: pointer;
+            transition: all 0.2s ease; letter-spacing: 0.2px; white-space: nowrap;
+        }
+        .btn-delete { background: #fed7d7; color: #c53030; }
+        .btn-delete:hover { background: #feb2b2; transform: scale(1.04); }
+        .btn-save { background: #c6f6d5; color: #276749; }
+        .btn-save:hover { background: #9ae6b4; transform: scale(1.04); }
+
+        .btn-add {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(145deg, #48bb78, #2f855a); color: white;
+            font-weight: 600; font-size: 1rem; padding: 12px 28px;
+            border-radius: 36px; cursor: pointer; transition: all 0.25s ease;
+            box-shadow: 0 6px 16px rgba(56, 161, 105, 0.35);
+            border: 2px solid transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            letter-spacing: 0.3px;
+        }
+        .btn-add:hover {
+            background: linear-gradient(145deg, #4fd18b, #2f855a);
+            box-shadow: 0 12px 22px rgba(47, 133, 90, 0.4); transform: translateY(-2px);
+        }
+        .btn-add:active { transform: translateY(1px); }
+
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(145deg, #48bb78, #2f855a); color: white;
+            font-weight: 600; font-size: 1.1rem; letter-spacing: 0.3px;
+            padding: 14px 28px; border-radius: 40px; text-decoration: none;
+            transition: all 0.25s ease; box-shadow: 0 8px 18px rgba(56, 161, 105, 0.35);
+            border: 2px solid transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+        .back-btn:hover {
+            background: linear-gradient(145deg, #4fd18b, #2f855a);
+            box-shadow: 0 14px 24px rgba(47, 133, 90, 0.45); transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.25); text-decoration: none; color: white;
+        }
+        .back-btn:active { transform: translateY(1px); }
+
+        .action-row {
+            display: flex; flex-wrap: wrap; gap: 14px;
+            justify-content: flex-start; align-items: center; margin-top: 8px;
+        }
+
+        .message-box {
+            padding: 10px 18px; border-radius: 14px; font-weight: 600;
+            font-size: 0.9rem; margin-bottom: 12px; display: none;
+        }
+        .message-success { background: #c6f6d5; color: #276749; display: block; }
+        .message-error { background: #fed7d7; color: #c53030; display: block; }
+
+        .section-subtitle {
+            color: #2c5282; font-weight: 600; font-size: 1.2rem;
+            margin-bottom: 16px; text-align: center;
+        }
+
+        /* Модальное окно сохранения */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000; opacity: 0; visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-card {
+            background: white; border-radius: 28px; padding: 32px 28px;
+            max-width: 500px; width: 100%; text-align: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2); animation: slideUp 0.4s ease;
+        }
+        .modal-icon { font-size: 3rem; margin-bottom: 10px; }
+        .modal-title { font-size: 1.5rem; font-weight: 700; color: #2c5282; margin-bottom: 8px; }
+        .modal-text { color: #4a5568; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+        .modal-btn {
+            padding: 12px 24px; border-radius: 24px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer; transition: all 0.2s;
+            border: none; letter-spacing: 0.3px;
+        }
+        .modal-btn-primary {
+            background: linear-gradient(145deg, #48bb78, #2f855a); color: white;
+            box-shadow: 0 6px 14px rgba(56, 161, 105, 0.3);
+        }
+        .modal-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 161, 105, 0.4); }
+        .modal-btn-secondary {
+            background: #e2e8f0; color: #4a5568;
+        }
+        .modal-btn-secondary:hover { background: #cbd5e0; }
+
+        /* Экспорт */
+        .export-block {
+            margin-top: 20px; padding: 16px; background: rgba(255, 255, 255, 0.5);
+            border-radius: 16px; border: 1px dashed #48bb78;
+        }
+        .export-title { font-weight: 700; color: #2c5282; margin-bottom: 8px; }
+        .code-block {
+            background: #1a202c; color: #c6f6d5; padding: 14px; border-radius: 12px;
+            font-family: 'Courier New', monospace; font-size: 0.8rem; overflow-x: auto;
+            max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+        }
+        .btn-copy {
+            margin-top: 8px; background: #e2e8f0; color: #2d3748; border: none;
+            padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer;
+            font-size: 0.85rem; transition: all 0.2s;
+        }
+        .btn-copy:hover { background: #cbd5e0; }
+
+        /* Уведомление toast */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #1a202c; color: white; padding: 14px 28px;
+            border-radius: 30px; font-weight: 600; font-size: 0.95rem;
+            z-index: 3000; opacity: 0; transition: opacity 0.4s ease;
+            pointer-events: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .toast.show { opacity: 1; }
+
+        @media (max-width: 700px) {
+            .page-title { font-size: 1.4rem; }
+            .data-table { font-size: 0.82rem; }
+            .data-table thead th, .data-table td { padding: 8px 8px; }
+            .data-table input[type="text"], .data-table input[type="number"] { font-size: 0.8rem; padding: 6px 7px; }
+            .panel-wrapper { padding: 16px 8px; border-radius: 22px; }
+            .tab-btn { font-size: 0.9rem; padding: 10px 18px; }
+            .login-card { padding: 28px 20px; margin: 0 12px; }
+            .login-title { font-size: 1.4rem; }
+            .header-row { flex-direction: column; align-items: stretch; }
+            .header-buttons { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== ЭКРАН ВХОДА ==================== -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-icon">🔐</div>
+            <div class="login-title">Вход в систему</div>
+            <div class="login-subtitle">Доступ только для администратора</div>
+            <div class="input-group">
+                <label for="loginInput">Логин</label>
+                <input type="text" id="loginInput" placeholder="Введите логин" autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="passwordInput">Пароль</label>
+                <input type="password" id="passwordInput" placeholder="Введите пароль" autocomplete="current-password">
+            </div>
+            <button class="login-btn" id="loginBtn">🚪 Войти</button>
+            <div class="login-error" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- ==================== МОДАЛЬНОЕ ОКНО СОХРАНЕНИЯ ==================== -->
+    <div class="modal-overlay" id="saveModal">
+        <div class="modal-card">
+            <div class="modal-icon">💾</div>
+            <div class="modal-title">Сохранить изменения</div>
+            <div class="modal-text">
+                Файлы <b>students_data.js</b> и <b>homework_data.js</b> будут скачаны.<br>
+                Замените ими старые файлы в папке проекта.
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" id="confirmSaveBtn">📥 Скачать оба файла</button>
+                <button class="modal-btn modal-btn-secondary" id="cancelSaveBtn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== УВЕДОМЛЕНИЕ ==================== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ==================== ОСНОВНОЙ КОНТЕНТ ==================== -->
+    <div class="main-container" id="mainContent">
+        <div class="header-row">
+            <h1 class="page-title">🛠️ Редактирование данных</h1>
+            <div class="header-buttons">
+                
+                <div class="user-info">👤 <span id="currentUser">Admin</span></div>
+                <button class="logout-btn" id="logoutBtn">🚪 Выйти</button>
+            </div>
+        </div>
+
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="students">👥 Студенты</button>
+            <button class="tab-btn" data-tab="homework">📚 Домашние задания</button>
+        </div>
+
+        <!-- Панель СТУДЕНТЫ -->
+        <div class="panel-wrapper tab-content active" id="tab-students">
+            <div class="section-subtitle">👥 Редактирование списка студентов</div>
+            <div id="studentsMessage" class="message-box"></div>
+            <table class="data-table" id="studentsEditTable">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Фамилия</th>
+                        <th>Имя</th>
+                        <th>Отчество</th>
+                        <th>Оценка</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsEditBody"></tbody>
+            </table>
+            <div class="action-row">
+                <button class="btn-add" id="addStudentBtn">➕ Добавить студента</button>
+            </div>
+            <div class="export-block">
+                <div class="export-title">📋 Предпросмотр students_data.js:</div>
+                <div class="code-block" id="studentsCodeExport"></div>
+                <button class="btn-copy" id="copyStudentsCode">📋 Скопировать код</button>
+            </div>
+        </div>
+
+        <!-- Панель ДОМАШНИЕ ЗАДАНИЯ -->
+        <div class="panel-wrapper tab-content" id="tab-homework">
+            <div class="section-subtitle">📚 Редактирование домашних заданий</div>
+            <div id="homeworkMessage" class="message-box"></div>
+            <table class="data-table" id="homeworkEditTable">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Дата</th>
+                        <th>Время</th>
+                        <th>Тема урока</th>
+                        <th>Домашнее задание</th>
+                        <th>Актуальное</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="homeworkEditBody"></tbody>
+            </table>
+            <div class="action-row">
+                <button class="btn-add" id="addHomeworkBtn">➕ Добавить задание</button>
+            </div>
+            <div class="export-block">
+                <div class="export-title">📋 Предпросмотр homework_data.js:</div>
+                <div class="code-block" id="homeworkCodeExport"></div>
+                <button class="btn-copy" id="copyHomeworkCode">📋 Скопировать код</button>
+            </div>
+        </div>
+  <div class="header-buttons">
+                              
+<button class="save-all-btn" id="saveAllBtn">💾 Сохранить оба файла</button> 
+<a href="index_main.html" class="back-btn" aria-label="Вернуться на главную">🏠 На главную</a>
+            </div>        
+
+
+    </div>
+
+    <!-- Подключение данных -->
+    <script src="students_data.js"></script>
+    <script src="homework_data.js"></script>
+
+    <script>
+        // ==================== АВТОРИЗАЦИЯ ====================
+        const VALID_LOGIN = 'Admin';
+        const VALID_PASSWORD = 'KAFINF';
+        const AUTH_KEY = 'kafinf_auth_approved';
+        const DATA_BACKUP_KEY = 'kafinf_data_backup';
+
+        function isAuthenticated() {
+            return sessionStorage.getItem(AUTH_KEY) === 'true';
+        }
+
+        function setAuthenticated(value) {
+            if (value) {
+                sessionStorage.setItem(AUTH_KEY, 'true');
+            } else {
+                sessionStorage.removeItem(AUTH_KEY);
+            }
+        }
+
+        function toggleLoginScreen(show) {
+            const overlay = document.getElementById('loginOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+                document.getElementById('loginInput').value = '';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('loginError').textContent = '';
+                document.getElementById('loginError').classList.remove('shake');
+                setTimeout(() => document.getElementById('loginInput').focus(), 300);
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function handleLogin() {
+            const loginInput = document.getElementById('loginInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const loginError = document.getElementById('loginError');
+            const login = loginInput.value.trim();
+            const password = passwordInput.value;
+
+            if (login === VALID_LOGIN && password === VALID_PASSWORD) {
+                setAuthenticated(true);
+                toggleLoginScreen(false);
+                loginError.textContent = '';
+                loginError.classList.remove('shake');
+            } else {
+                loginError.textContent = '❌ Неверный логин или пароль';
+                loginError.classList.add('shake');
+                setTimeout(() => loginError.classList.remove('shake'), 500);
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Вы действительно хотите выйти? Все несохранённые изменения будут потеряны.')) {
+                setAuthenticated(false);
+                toggleLoginScreen(true);
+            }
+        }
+
+        // ==================== СОХРАНЕНИЕ ДАННЫХ В localStorage ====================
+        function backupDataToStorage() {
+            const backup = {
+                students: JSON.parse(JSON.stringify(studentsData)),
+                homework: JSON.parse(JSON.stringify(homeworkData)),
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(DATA_BACKUP_KEY, JSON.stringify(backup));
+        }
+
+        function restoreDataFromStorage() {
+            const saved = localStorage.getItem(DATA_BACKUP_KEY);
+            if (saved) {
+                try {
+                    const backup = JSON.parse(saved);
+                    if (backup.students && Array.isArray(backup.students)) {
+                        studentsData = JSON.parse(JSON.stringify(backup.students));
+                    }
+                    if (backup.homework && Array.isArray(backup.homework)) {
+                        homeworkData = JSON.parse(JSON.stringify(backup.homework));
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('Ошибка восстановления из localStorage:', e);
+                }
+            }
+            return false;
+        }
+
+        // ==================== СКАЧИВАНИЕ ФАЙЛОВ ====================
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'application/javascript;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function saveAllFiles() {
+            const studentsCode = generateStudentsCode();
+            const homeworkCode = generateHomeworkCode();
+
+            // Небольшая задержка между скачиваниями для надёжности
+            downloadFile('students_data.js', studentsCode);
+            
+            setTimeout(() => {
+                downloadFile('homework_data.js', homeworkCode);
+            }, 300);
+
+            // Сохраняем резервную копию в localStorage
+            backupDataToStorage();
+
+            showToast('✅ Файлы сохранены! Замените старые файлы в папке проекта.');
+        }
+
+        function openSaveModal() {
+            document.getElementById('saveModal').classList.add('active');
+        }
+
+        function closeSaveModal() {
+            document.getElementById('saveModal').classList.remove('active');
+        }
+
+        // ==================== УВЕДОМЛЕНИЕ ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+        let studentsData = [];
+        let homeworkData = [];
+
+        function loadData() {
+            // Пробуем восстановить из localStorage (если есть сохранённые изменения)
+            const restored = restoreDataFromStorage();
+            
+            if (!restored) {
+                // Если нет сохранённых данных — загружаем из подключённых JS-файлов
+                if (typeof window.studentsData !== 'undefined') {
+                    studentsData = JSON.parse(JSON.stringify(window.studentsData));
+                }
+                if (typeof window.homeworkData !== 'undefined') {
+                    homeworkData = JSON.parse(JSON.stringify(window.homeworkData));
+                }
+            } else {
+                console.log('✅ Данные восстановлены из резервной копии (localStorage)');
+            }
+        }
+
+        // ==================== ВКЛАДКИ ====================
+        function setupTabs() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `tab-${targetTab}`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+        }
+
+        // ==================== СТУДЕНТЫ ====================
+        function renderStudentsTable() {
+            const tbody = document.getElementById('studentsEditBody');
+            tbody.innerHTML = '';
+            studentsData.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><input type="text" value="${student.lastName}" data-field="lastName" data-index="${index}" placeholder="Фамилия"></td>
+                    <td><input type="text" value="${student.firstName}" data-field="firstName" data-index="${index}" placeholder="Имя"></td>
+                    <td><input type="text" value="${student.middleName}" data-field="middleName" data-index="${index}" placeholder="Отчество"></td>
+                    <td><input type="number" value="${student.grade}" data-field="grade" data-index="${index}" step="0.1" min="1" max="5"></td>
+                    <td><button class="action-btn btn-delete" data-action="delete-student" data-index="${index}">🗑️ Удалить</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            updateStudentsExport();
+            backupDataToStorage();
+        }
+
+        function updateStudentsExport() {
+            document.getElementById('studentsCodeExport').textContent = generateStudentsCode();
+        }
+
+        function generateStudentsCode() {
+            let code = 'window.studentsData = [\n';
+            studentsData.forEach((student, index) => {
+                code += '    {\n';
+                code += `        lastName: '${student.lastName}',\n`;
+                code += `        firstName: '${student.firstName}',\n`;
+                code += `        middleName: '${student.middleName}',\n`;
+                code += `        grade: ${student.grade}\n`;
+                code += '    }';
+                if (index < studentsData.length - 1) code += ',';
+                code += '\n';
+            });
+            code += '];';
+            return code;
+        }
+
+        function addStudent() {
+            studentsData.push({ lastName: 'Новый', firstName: 'Студент', middleName: 'Отчество', grade: 4 });
+            renderStudentsTable();
+            showMessage('studentsMessage', '✅ Студент добавлен!', 'success');
+        }
+
+        function deleteStudent(index) {
+            if (confirm(`Удалить студента "${studentsData[index].lastName} ${studentsData[index].firstName}"?`)) {
+                studentsData.splice(index, 1);
+                renderStudentsTable();
+                showMessage('studentsMessage', '🗑️ Студент удалён.', 'success');
+            }
+        }
+
+        function updateStudentField(index, field, value) {
+            if (field === 'grade') {
+                value = parseFloat(value) || 1;
+                value = Math.min(5, Math.max(1, value));
+            }
+            studentsData[index][field] = value;
+            updateStudentsExport();
+            backupDataToStorage();
+        }
+
+        // ==================== ДОМАШНИЕ ЗАДАНИЯ ====================
+        function renderHomeworkTable() {
+            const tbody = document.getElementById('homeworkEditBody');
+            tbody.innerHTML = '';
+            homeworkData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><input type="text" value="${item.date}" data-hw-field="date" data-hw-index="${index}" placeholder="ДД.ММ.ГГГГ"></td>
+                    <td><input type="text" value="${item.time}" data-hw-field="time" data-hw-index="${index}" placeholder="09:00 – 10:35"></td>
+                    <td><input type="text" value="${item.topic}" data-hw-field="topic" data-hw-index="${index}" placeholder="Тема урока"></td>
+                    <td><input type="text" value="${item.homework}" data-hw-field="homework" data-hw-index="${index}" placeholder="Текст задания"></td>
+                    <td style="text-align:center;">
+                        <input type="checkbox" data-hw-field="isLast" data-hw-index="${index}" ${item.isLast ? 'checked' : ''} title="Отметить как актуальное">
+                    </td>
+                    <td>
+                        <button class="action-btn btn-save" data-action="save-homework" data-hw-index="${index}" style="margin-right:4px;">💾</button>
+                        <button class="action-btn btn-delete" data-action="delete-homework" data-hw-index="${index}">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            updateHomeworkExport();
+            backupDataToStorage();
+        }
+
+        function updateHomeworkExport() {
+            document.getElementById('homeworkCodeExport').textContent = generateHomeworkCode();
+        }
+
+        function generateHomeworkCode() {
+            let code = 'window.homeworkData = [\n';
+            homeworkData.forEach((item, index) => {
+                code += '    {\n';
+                code += `        date: '${item.date}',\n`;
+                code += `        time: '${item.time}',\n`;
+                code += `        lesson: 'Информатика',\n`;
+                code += `        topic: '${item.topic}',\n`;
+                code += `        homework: '${item.homework}',\n`;
+                code += `        isLast: ${item.isLast}\n`;
+                code += '    }';
+                if (index < homeworkData.length - 1) code += ',';
+                code += '\n';
+            });
+            code += '];';
+            return code;
+        }
+
+        function addHomework() {
+            homeworkData.push({
+                date: '01.01.2026', time: '10:00 – 11:35',
+                lesson: 'Информатика', topic: 'Новая тема',
+                homework: 'Новое задание', isLast: false
+            });
+            renderHomeworkTable();
+            showMessage('homeworkMessage', '✅ Задание добавлено!', 'success');
+        }
+
+        function deleteHomework(index) {
+            if (confirm(`Удалить задание от ${homeworkData[index].date}?`)) {
+                homeworkData.splice(index, 1);
+                renderHomeworkTable();
+                showMessage('homeworkMessage', '🗑️ Задание удалено.', 'success');
+            }
+        }
+
+        function updateHomeworkField(index, field, value) {
+            if (field === 'isLast') {
+                if (value === true) {
+                    homeworkData.forEach((item, i) => { item.isLast = (i === index); });
+                } else {
+                    homeworkData[index].isLast = false;
+                }
+                renderHomeworkTable();
+            } else {
+                homeworkData[index][field] = value;
+                updateHomeworkExport();
+                backupDataToStorage();
+            }
+        }
+
+        function saveHomeworkRow(index) {
+            showMessage('homeworkMessage', `💾 Изменения в задании №${index + 1} сохранены.`, 'success');
+            updateHomeworkExport();
+            backupDataToStorage();
+        }
+
+        // ==================== ОБЩИЕ ФУНКЦИИ ====================
+        function showMessage(containerId, text, type) {
+            const msgBox = document.getElementById(containerId);
+            msgBox.textContent = text;
+            msgBox.className = 'message-box';
+            msgBox.classList.add(type === 'success' ? 'message-success' : 'message-error');
+            setTimeout(() => { msgBox.className = 'message-box'; msgBox.textContent = ''; }, 4000);
+        }
+
+        function copyToClipboard(elementId) {
+            const codeDiv = document.getElementById(elementId);
+            const text = codeDiv.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 Код скопирован в буфер обмена!');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('📋 Код скопирован!');
+            });
+        }
+
+        // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+        function setupEventListeners() {
+            // Авторизация
+            document.getElementById('loginBtn').addEventListener('click', handleLogin);
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleLogin();
+            });
+            document.getElementById('loginInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') document.getElementById('passwordInput').focus();
+            });
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+            // Кнопка сохранения
+            document.getElementById('saveAllBtn').addEventListener('click', openSaveModal);
+            document.getElementById('confirmSaveBtn').addEventListener('click', function() {
+                closeSaveModal();
+                saveAllFiles();
+            });
+            document.getElementById('cancelSaveBtn').addEventListener('click', closeSaveModal);
+            
+            // Закрытие модального окна по клику вне карточки
+            document.getElementById('saveModal').addEventListener('click', function(e) {
+                if (e.target === this) closeSaveModal();
+            });
+
+            // Студенты
+            document.getElementById('studentsEditBody').addEventListener('input', function(e) {
+                const target = e.target;
+                if (target.dataset.field && target.dataset.index !== undefined) {
+                    updateStudentField(parseInt(target.dataset.index), target.dataset.field, target.value);
+                }
+            });
+            document.getElementById('studentsEditBody').addEventListener('click', function(e) {
+                const target = e.target;
+                if (target.dataset.action === 'delete-student' && target.dataset.index !== undefined) {
+                    deleteStudent(parseInt(target.dataset.index));
+                }
+            });
+            document.getElementById('addStudentBtn').addEventListener('click', addStudent);
+            document.getElementById('copyStudentsCode').addEventListener('click', function() {
+                copyToClipboard('studentsCodeExport');
+            });
+
+            // Домашние задания
+            document.getElementById('homeworkEditBody').addEventListener('change', function(e) {
+                const target = e.target;
+                if (target.dataset.hwField && target.dataset.hwIndex !== undefined) {
+                    const index = parseInt(target.dataset.hwIndex);
+                    const field = target.dataset.hwField;
+                    let value = target.type === 'checkbox' ? target.checked : target.value;
+                    updateHomeworkField(index, field, value);
+                }
+            });
+            document.getElementById('homeworkEditBody').addEventListener('input', function(e) {
+                const target = e.target;
+                if (target.type !== 'checkbox' && target.dataset.hwField && target.dataset.hwIndex !== undefined) {
+                    homeworkData[parseInt(target.dataset.hwIndex)][target.dataset.hwField] = target.value;
+                    updateHomeworkExport();
+                    backupDataToStorage();
+                }
+            });
+            document.getElementById('homeworkEditBody').addEventListener('click', function(e) {
+                const target = e.target;
+                if (target.dataset.action === 'delete-homework' && target.dataset.hwIndex !== undefined) {
+                    deleteHomework(parseInt(target.dataset.hwIndex));
+                }
+                if (target.dataset.action === 'save-homework' && target.dataset.hwIndex !== undefined) {
+                    saveHomeworkRow(parseInt(target.dataset.hwIndex));
+                }
+            });
+            document.getElementById('addHomeworkBtn').addEventListener('click', addHomework);
+            document.getElementById('copyHomeworkCode').addEventListener('click', function() {
+                copyToClipboard('homeworkCodeExport');
+            });
+
+            // Автосохранение в localStorage перед уходом со страницы
+            window.addEventListener('beforeunload', function() {
+                backupDataToStorage();
+            });
+        }
+
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupTabs();
+            renderStudentsTable();
+            renderHomeworkTable();
+            setupEventListeners();
+
+            if (isAuthenticated()) {
+                toggleLoginScreen(false);
+            } else {
+                toggleLoginScreen(true);
+            }
+        });
+    </script>
+</body>
+</html>
